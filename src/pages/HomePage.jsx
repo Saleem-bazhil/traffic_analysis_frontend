@@ -52,7 +52,12 @@ export default function HomePage() {
             // Pass result to ResultPage
             navigate('/result', { state: { result: response.data } });
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Error uploading file.');
+            console.error(">>> FRONTEND UPLOAD CRASH LOG <<<");
+            console.error("Full Error Object:", err);
+            console.error("Backend Error Response:", err.response?.data);
+            console.error("HTTP Status Code:", err.response?.status);
+
+            setError(err.response?.data?.error || err.message || 'Error uploading file. Check Console.');
         } finally {
             setIsUploading(false);
         }

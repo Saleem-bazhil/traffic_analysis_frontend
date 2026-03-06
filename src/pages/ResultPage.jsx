@@ -68,17 +68,7 @@ export default function ResultPage() {
                         <div className="text-gray-500">Image/Video not available</div>
                     )}
 
-                    {/* Floating Signal Dashboard Overlay */}
-                    {result.time_series_data && (
-                        <div className="absolute top-4 right-4 z-20 pointer-events-none scale-75 origin-top-right transition-opacity duration-300 opacity-90 hover:opacity-100 hidden md:block">
-                            <DynamicSignalDashboard
-                                timeSeriesData={result.time_series_data}
-                                currentTime={currentTime}
-                                isPlaying={isPlaying}
-                                compact={true}
-                            />
-                        </div>
-                    )}
+                    {/* Removed Dashboard overlay from here */}
                 </div>
 
                 {/* Global Stats */}
@@ -115,6 +105,16 @@ export default function ResultPage() {
                 </div>
             </div>
 
+            {/* Smart Dashboard Integration (Full width) */}
+            {result.time_series_data && (
+                <DynamicSignalDashboard
+                    timeSeriesData={result.time_series_data}
+                    currentTime={currentTime}
+                    isPlaying={isPlaying}
+                    compact={false}
+                />
+            )}
+
             {/* Direction Stats */}
             <div className="glass-card rounded-2xl p-8 mb-8 relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500"></div>
@@ -146,16 +146,7 @@ export default function ResultPage() {
                 </div>
             </div>
 
-            {/* Mobile Smart Dashboard Integration */}
-            <div className="lg:hidden mb-8">
-                {result.time_series_data && (
-                    <DynamicSignalDashboard
-                        timeSeriesData={result.time_series_data}
-                        currentTime={currentTime}
-                        isPlaying={isPlaying}
-                    />
-                )}
-            </div>
+            {/* Legacy mobile integration removed, dashboard is fully responsive now */}
 
             {/* Actions */}
             <div className="flex justify-end space-x-4 mt-12">

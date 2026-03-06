@@ -93,17 +93,7 @@ export default function AnalysisDetailPage() {
                             <span className="text-gray-500">No media available</span>
                         )}
 
-                        {/* Floating Signal Dashboard Overlay */}
-                        {analysis.time_series_data && (
-                            <div className="absolute top-2 right-2 z-20 pointer-events-none scale-75 origin-top-right opacity-90 transition-opacity duration-300 hover:opacity-100">
-                                <DynamicSignalDashboard
-                                    timeSeriesData={analysis.time_series_data}
-                                    currentTime={currentTime}
-                                    isPlaying={isPlaying}
-                                    compact={true}
-                                />
-                            </div>
-                        )}
+                        {/* Removed Floating Signal Dashboard Overlay */}
                     </div>
 
                     <div className="flex flex-col space-y-6">
@@ -139,7 +129,15 @@ export default function AnalysisDetailPage() {
                     </div>
                 </div>
 
-                {/* Mobile Dash rendering handled differently or ignored since it's compact overlay above */}
+                {/* Smart Dashboard Integration */}
+                {analysis.time_series_data && (
+                    <DynamicSignalDashboard
+                        timeSeriesData={analysis.time_series_data}
+                        currentTime={currentTime}
+                        isPlaying={isPlaying}
+                        compact={false}
+                    />
+                )}
 
                 <div className="flex justify-end pt-8 mt-4 border-t border-gray-200 dark:border-gray-800/50">
                     <a

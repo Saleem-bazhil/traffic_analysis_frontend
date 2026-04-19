@@ -260,7 +260,7 @@ export default function ResultPage() {
             <div className="grid grid-cols-1 gap-8 mb-8">
                 <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Vehicle Counts</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
                             { label: 'Cars', value: vehicle_counts.car, accent: 'text-blue-400' },
                             { label: 'Trucks', value: vehicle_counts.truck, accent: 'text-red-400' },
@@ -270,15 +270,6 @@ export default function ResultPage() {
                             <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                                 <p className="text-xs font-black uppercase tracking-[0.28em] text-gray-500 dark:text-gray-400 mb-2">{item.label}</p>
                                 <p className={`text-3xl font-black ${item.accent}`}>{item.value}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(lane_counts).map(([laneName, count]) => (
-                            <div key={laneName} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                                <p className="text-xs font-black uppercase tracking-[0.28em] text-gray-500 dark:text-gray-400 mb-2">{laneName}</p>
-                                <p className="text-3xl font-black text-white">{count}</p>
                             </div>
                         ))}
                     </div>

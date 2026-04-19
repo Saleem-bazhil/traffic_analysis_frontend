@@ -222,7 +222,7 @@ export default function DynamicSignalDashboard({ timeSeriesData, currentTime = 0
             }`}>
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <p className={`truncate text-lg font-black uppercase leading-none tracking-tight ${isActive ? 'text-emerald-400' : 'text-white'}`}>
+                        <p className={`truncate text-lg font-black uppercase leading-none tracking-tight ${isActive ? 'text-emerald-400' : 'text-red-400'}`}>
                             {shortLabel}
                         </p>
                         <p className="mt-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">

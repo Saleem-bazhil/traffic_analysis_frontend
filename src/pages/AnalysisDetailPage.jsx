@@ -71,32 +71,55 @@ export default function AnalysisDetailPage() {
                     <span className="gradient-text">{analysis.filename}</span>
                 </h1>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    <div className="lg:col-span-2 relative bg-black/80 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center min-h-[400px] group backdrop-blur-xl">
-                        {analysis.result_url ? (
-                            analysis.file_type === 'video' ? (
-                                <video
-                                    src={analysis.result_url}
-                                    controls
-                                    className="w-full h-full object-contain max-h-[400px]"
-                                    autoPlay
-                                    muted
-                                    loop
-                                    onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
-                                    onPlay={() => setIsPlaying(true)}
-                                    onPause={() => setIsPlaying(false)}
-                                />
+                <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,420px)] mb-8">
+                    <div className="self-start space-y-8">
+                        <div className="relative bg-black/80 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center group backdrop-blur-xl">
+                            {analysis.result_url ? (
+                                analysis.file_type === 'video' ? (
+                                    <video
+                                        src={analysis.result_url}
+                                        controls
+                                        className="block w-full h-auto max-h-[400px] object-contain"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
+                                        onPlay={() => setIsPlaying(true)}
+                                        onPause={() => setIsPlaying(false)}
+                                    />
+                                ) : (
+                                    <img src={analysis.result_url} alt="Result" className="block w-full h-auto max-h-[400px] object-contain" />
+                                )
                             ) : (
-                                <img src={analysis.result_url} alt="Result" className="w-full h-full object-contain max-h-[400px]" />
-                            )
-                        ) : (
-                            <span className="text-gray-500">No media available</span>
-                        )}
+                                <div className="flex min-h-[400px] items-center justify-center text-gray-500">No media available</div>
+                            )}
+                        </div>
 
-                        {/* Removed Floating Signal Dashboard Overlay */}
+                        {/* Smart Dashboard Integration */}
+                        {analysis.time_series_data && (
+                            <div className="xl:hidden">
+                                <DynamicSignalDashboard
+                                    timeSeriesData={analysis.time_series_data}
+                                    currentTime={currentTime}
+                                    isPlaying={isPlaying}
+                                    compact={false}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex flex-col space-y-6">
+                    <div className="self-start flex flex-col space-y-6">
+                        {analysis.time_series_data && (
+                            <div className="hidden xl:block">
+                                <DynamicSignalDashboard
+                                    timeSeriesData={analysis.time_series_data}
+                                    currentTime={currentTime}
+                                    isPlaying={isPlaying}
+                                    compact={false}
+                                />
+                            </div>
+                        )}
+
                         <div className="glass-card rounded-2xl p-8 relative overflow-hidden group/card hover:-translate-y-1 transition-transform duration-300">
                             <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover/card:bg-indigo-500/20 transition-colors"></div>
                             <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-1 flex items-center space-x-2 uppercase tracking-wider">
@@ -128,16 +151,6 @@ export default function AnalysisDetailPage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Smart Dashboard Integration */}
-                {analysis.time_series_data && (
-                    <DynamicSignalDashboard
-                        timeSeriesData={analysis.time_series_data}
-                        currentTime={currentTime}
-                        isPlaying={isPlaying}
-                        compact={false}
-                    />
-                )}
 
                 <div className="flex justify-end pt-8 mt-4 border-t border-gray-200 dark:border-gray-800/50">
                     <a

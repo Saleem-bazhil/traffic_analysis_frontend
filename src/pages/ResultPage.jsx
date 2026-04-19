@@ -91,7 +91,7 @@ export default function ResultPage() {
         );
     }
 
-    const { vehicle_counts, lane_counts, lane_densities } = result;
+    const { vehicle_counts, lane_counts } = result;
 
     const directionBarData = {
         labels: Object.keys(lane_counts),
@@ -127,7 +127,7 @@ export default function ResultPage() {
         labels: timeSeries.map((entry) => `${Math.round(entry.timestamp)}s`),
         datasets: [
             {
-                label: 'System Load %',
+                label: 'Traffic Activity',
                 data: timeSeries.map((entry) => Number(entry.density || 0).toFixed(1)),
                 borderColor: '#8b5cf6',
                 backgroundColor: 'rgba(139, 92, 246, 0.18)',
@@ -139,7 +139,7 @@ export default function ResultPage() {
 
     const summaryCards = [
         {
-            title: 'System Load',
+            title: 'Activity',
             value: `${result.density_percentage.toFixed(1)}%`,
             icon: Activity,
             accent: 'text-violet-300',
@@ -174,38 +174,54 @@ export default function ResultPage() {
                 <div className="w-24"></div>
             </div>
 
-            <div className="glass-card rounded-3xl overflow-hidden shadow-2xl border border-white/10 backdrop-blur-xl mb-8">
-                <div className="relative bg-black/80 flex items-center justify-center min-h-[360px]">
-                    {result.result_url ? (
-                        result.file_type === 'video' ? (
-                            <video
-                                src={result.result_url}
-                                controls
-                                className="w-full h-full object-contain max-h-[640px]"
-                                autoPlay
-                                muted
-                                loop
-                                onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
-                                onPlay={() => setIsPlaying(true)}
-                                onPause={() => setIsPlaying(false)}
-                            />
-                        ) : (
-                            <img src={result.result_url} alt="Analyzed Traffic" className="w-full h-full object-contain max-h-[640px]" />
-                        )
-                    ) : (
-                        <div className="text-gray-500">Image/Video not available</div>
-                    )}
-                </div>
-            </div>
+            <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(280px,360px)] mb-8">
+                <div className="self-start space-y-8">
+                    <div className="glass-card rounded-3xl overflow-hidden shadow-2xl border border-white/10 backdrop-blur-xl">
+                        <div className="relative bg-black/80 flex items-center justify-center overflow-hidden">
+                            {result.result_url ? (
+                                result.file_type === 'video' ? (
+                                    <video
+                                        src={result.result_url}
+                                        controls
+                                        className="block w-full h-auto max-h-[640px] object-contain"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
+                                        onPlay={() => setIsPlaying(true)}
+                                        onPause={() => setIsPlaying(false)}
+                                    />
+                                ) : (
+                                    <img src={result.result_url} alt="Analyzed Traffic" className="block w-full h-auto max-h-[640px] object-contain" />
+                                )
+                            ) : (
+                                <div className="flex min-h-[360px] items-center justify-center text-gray-500">Image/Video not available</div>
+                            )}
+                        </div>
+                    </div>
 
-            {result.time_series_data && (
-                <DynamicSignalDashboard
-                    timeSeriesData={result.time_series_data}
-                    currentTime={currentTime}
-                    isPlaying={isPlaying}
-                    compact={false}
-                />
-            )}
+                    <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Compass className="h-5 w-5 text-emerald-400" />
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Direction Breakdown</h3>
+                        </div>
+                        <div className="h-[300px]">
+                            <Bar data={directionBarData} options={chartOptions} />
+                        </div>
+                    </div>
+                </div>
+
+                {result.time_series_data && (
+                    <div className="self-start">
+                        <DynamicSignalDashboard
+                            timeSeriesData={result.time_series_data}
+                            currentTime={currentTime}
+                            isPlaying={isPlaying}
+                            compact={false}
+                        />
+                    </div>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                 {summaryCards.map((item) => (
@@ -241,19 +257,9 @@ export default function ResultPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 gap-8 mb-8">
                 <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Compass className="h-5 w-5 text-emerald-400" />
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Direction Breakdown</h3>
-                    </div>
-                    <div className="h-[300px]">
-                        <Bar data={directionBarData} options={chartOptions} />
-                    </div>
-                </div>
-
-                <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Counts and Load</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Vehicle Counts</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         {[
                             { label: 'Cars', value: vehicle_counts.car, accent: 'text-blue-400' },
@@ -268,24 +274,13 @@ export default function ResultPage() {
                         ))}
                     </div>
 
-                    <div className="space-y-4">
-                        {Object.entries(lane_counts).map(([laneName, count]) => {
-                            const density = lane_densities[laneName] || 0;
-                            return (
-                                <div key={laneName}>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-semibold text-gray-700 dark:text-gray-200">{laneName}</span>
-                                        <span className="text-sm text-gray-400">{count} vehicles • {density.toFixed(1)}% load</span>
-                                    </div>
-                                    <div className="h-3 rounded-full bg-slate-800/70 overflow-hidden">
-                                        <div
-                                            className={`${density > 75 ? 'bg-red-500' : density > 50 ? 'bg-amber-400' : 'bg-emerald-500'} h-full rounded-full transition-all duration-700`}
-                                            style={{ width: `${density}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    <div className="grid grid-cols-2 gap-4">
+                        {Object.entries(lane_counts).map(([laneName, count]) => (
+                            <div key={laneName} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <p className="text-xs font-black uppercase tracking-[0.28em] text-gray-500 dark:text-gray-400 mb-2">{laneName}</p>
+                                <p className="text-3xl font-black text-white">{count}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

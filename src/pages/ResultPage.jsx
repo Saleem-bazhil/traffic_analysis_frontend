@@ -1,7 +1,72 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Clock, Activity, Download } from 'lucide-react';
+import { ArrowLeft, Clock, Download, Activity, Car, PieChart as PieChartIcon, BarChart3, Compass } from 'lucide-react';
+import {
+    ArcElement,
+    BarElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Tooltip,
+} from 'chart.js';
+import { Bar, Line, Pie } from 'react-chartjs-2';
 import DynamicSignalDashboard from '../components/DynamicSignalDashboard';
+
+ChartJS.register(
+    ArcElement,
+    BarElement,
+    CategoryScale,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Tooltip
+);
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            labels: {
+                color: '#cbd5f5',
+                font: {
+                    weight: '700',
+                },
+            },
+        },
+    },
+    scales: {
+        x: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(148, 163, 184, 0.12)' },
+        },
+        y: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(148, 163, 184, 0.12)' },
+        },
+    },
+};
+
+const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                color: '#cbd5f5',
+                padding: 18,
+                font: {
+                    weight: '700',
+                },
+            },
+        },
+    },
+};
 
 export default function ResultPage() {
     const location = useLocation();
@@ -9,7 +74,7 @@ export default function ResultPage() {
     const result = location.state?.result;
 
     const [currentTime, setCurrentTime] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(true); // Default behavior for images/videos without playback events if needed
+    const [isPlaying, setIsPlaying] = useState(true);
 
     if (!result) {
         return (
@@ -28,9 +93,73 @@ export default function ResultPage() {
 
     const { vehicle_counts, lane_counts, lane_densities } = result;
 
+    const directionBarData = {
+        labels: Object.keys(lane_counts),
+        datasets: [
+            {
+                label: 'Vehicles by Direction',
+                data: Object.values(lane_counts),
+                backgroundColor: ['#34d399', '#f87171', '#60a5fa', '#fbbf24'],
+                borderRadius: 14,
+            },
+        ],
+    };
+
+    const vehiclePieData = {
+        labels: ['Cars', 'Trucks', 'Buses', 'Motors'],
+        datasets: [
+            {
+                data: [
+                    vehicle_counts.car || 0,
+                    vehicle_counts.truck || 0,
+                    vehicle_counts.bus || 0,
+                    vehicle_counts.motorcycle || 0,
+                ],
+                backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'],
+                borderColor: ['#0f172a'],
+                borderWidth: 3,
+            },
+        ],
+    };
+
+    const timeSeries = result.time_series_data || [];
+    const trafficTrendData = {
+        labels: timeSeries.map((entry) => `${Math.round(entry.timestamp)}s`),
+        datasets: [
+            {
+                label: 'System Load %',
+                data: timeSeries.map((entry) => Number(entry.density || 0).toFixed(1)),
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.18)',
+                fill: true,
+                tension: 0.35,
+            },
+        ],
+    };
+
+    const summaryCards = [
+        {
+            title: 'System Load',
+            value: `${result.density_percentage.toFixed(1)}%`,
+            icon: Activity,
+            accent: 'text-violet-300',
+        },
+        {
+            title: 'Total Vehicles',
+            value: result.vehicle_count,
+            icon: Car,
+            accent: 'text-cyan-300',
+        },
+        {
+            title: 'Directions',
+            value: 'North South East West',
+            icon: Compass,
+            accent: 'text-emerald-300',
+        },
+    ];
+
     return (
         <div className="max-w-6xl mx-auto py-24 px-4 relative z-0">
-            {/* Decorative background blobs */}
             <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
             <div className="absolute bottom-20 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
@@ -42,18 +171,17 @@ export default function ResultPage() {
                 <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                     <span className="gradient-text">Analysis Dashboard</span>
                 </h1>
-                <div className="w-24"></div> {/* Spacer for centering */}
+                <div className="w-24"></div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                {/* Media Preview & Overlay */}
-                <div className="lg:col-span-2 relative bg-black/80 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center min-h-[400px] group backdrop-blur-xl">
+            <div className="glass-card rounded-3xl overflow-hidden shadow-2xl border border-white/10 backdrop-blur-xl mb-8">
+                <div className="relative bg-black/80 flex items-center justify-center min-h-[360px]">
                     {result.result_url ? (
                         result.file_type === 'video' ? (
                             <video
                                 src={result.result_url}
                                 controls
-                                className="w-full h-full object-contain max-h-[600px]"
+                                className="w-full h-full object-contain max-h-[640px]"
                                 autoPlay
                                 muted
                                 loop
@@ -62,50 +190,14 @@ export default function ResultPage() {
                                 onPause={() => setIsPlaying(false)}
                             />
                         ) : (
-                            <img src={result.result_url} alt="Analyzed Traffic" className="w-full h-full object-contain max-h-[600px]" />
+                            <img src={result.result_url} alt="Analyzed Traffic" className="w-full h-full object-contain max-h-[640px]" />
                         )
                     ) : (
                         <div className="text-gray-500">Image/Video not available</div>
                     )}
-
-                    {/* Removed Dashboard overlay from here */}
-                </div>
-
-                {/* Global Stats */}
-                <div className="flex flex-col space-y-6">
-                    <div className="glass-card rounded-2xl p-8 relative overflow-hidden group/card hover:-translate-y-1 transition-transform duration-300">
-                        <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover/card:bg-indigo-500/20 transition-colors"></div>
-                        <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-1 flex items-center space-x-2 uppercase tracking-wider">
-                            <Activity className="h-4 w-4 text-indigo-500" />
-                            <span>System Load</span>
-                        </h3>
-                        <div className="mt-4 flex items-end">
-                            <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 tracking-tighter">
-                                {result.density_percentage.toFixed(1)}%
-                            </span>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-                            Total Vehicles Detected: <span className="font-bold text-gray-900 dark:text-white text-lg ml-1">{result.vehicle_count}</span>
-                        </p>
-                    </div>
-
-                    <div className="glass-card rounded-2xl p-6 grid grid-cols-2 gap-4">
-                        {[
-                            { label: 'Cars', count: vehicle_counts.car, color: 'text-blue-500' },
-                            { label: 'Trucks', count: vehicle_counts.truck, color: 'text-amber-500' },
-                            { label: 'Buses', count: vehicle_counts.bus, color: 'text-emerald-500' },
-                            { label: 'Motors', count: vehicle_counts.motorcycle, color: 'text-purple-500' }
-                        ].map(v => (
-                            <div key={v.label} className="p-4 bg-white/40 dark:bg-gray-800/40 border border-white/20 dark:border-white/5 rounded-xl text-center hover:bg-white/60 dark:hover:bg-gray-800/60 transition-colors">
-                                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">{v.label}</p>
-                                <p className={`text-3xl font-black ${v.color} drop-shadow-sm`}>{v.count}</p>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 
-            {/* Smart Dashboard Integration (Full width) */}
             {result.time_series_data && (
                 <DynamicSignalDashboard
                     timeSeriesData={result.time_series_data}
@@ -115,40 +207,89 @@ export default function ResultPage() {
                 />
             )}
 
-            {/* Direction Stats */}
-            <div className="glass-card rounded-2xl p-8 mb-8 relative overflow-hidden">
-                <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500"></div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">Approach Breakdown</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {Object.entries(lane_counts).map(([laneName, count]) => {
-                        const density = lane_densities[laneName];
-                        const getDensityColor = (d) => {
-                            if (d > 75) return 'bg-red-500';
-                            if (d > 50) return 'bg-orange-500';
-                            return 'bg-green-500';
-                        };
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                {summaryCards.map((item) => (
+                    <div key={item.title} className="glass-card rounded-2xl p-6 border border-white/10">
+                        <div className="flex items-center justify-between mb-4">
+                            <p className="text-xs font-black uppercase tracking-[0.28em] text-gray-500 dark:text-gray-400">{item.title}</p>
+                            <item.icon className={`h-5 w-5 ${item.accent}`} />
+                        </div>
+                        <p className={`text-3xl font-black ${item.accent}`}>{item.value}</p>
+                    </div>
+                ))}
+            </div>
 
-                        return (
-                            <div key={laneName} className="flex flex-col">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">{laneName}</span>
-                                    <span className="text-sm text-gray-500">{count} vehicles</span>
-                                </div>
-                                <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
-                                    <div className={`h-full rounded-full ${getDensityColor(density)} transition-all duration-1000 ease-out`} style={{ width: `${density}%` }}></div>
-                                </div>
-                                <div className="text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                                    {density.toFixed(1)}% Load
-                                </div>
-                            </div>
-                        );
-                    })}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
+                <div className="xl:col-span-2 glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
+                    <div className="flex items-center gap-3 mb-6">
+                        <BarChart3 className="h-5 w-5 text-indigo-400" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Traffic Graph</h3>
+                    </div>
+                    <div className="h-[320px]">
+                        <Line data={trafficTrendData} options={chartOptions} />
+                    </div>
+                </div>
+
+                <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
+                    <div className="flex items-center gap-3 mb-6">
+                        <PieChartIcon className="h-5 w-5 text-pink-400" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Vehicle Pie Chart</h3>
+                    </div>
+                    <div className="h-[320px]">
+                        <Pie data={vehiclePieData} options={pieOptions} />
+                    </div>
                 </div>
             </div>
 
-            {/* Legacy mobile integration removed, dashboard is fully responsive now */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Compass className="h-5 w-5 text-emerald-400" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Direction Breakdown</h3>
+                    </div>
+                    <div className="h-[300px]">
+                        <Bar data={directionBarData} options={chartOptions} />
+                    </div>
+                </div>
 
-            {/* Actions */}
+                <div className="glass-card rounded-3xl p-6 sm:p-8 border border-white/10">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Counts and Load</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        {[
+                            { label: 'Cars', value: vehicle_counts.car, accent: 'text-blue-400' },
+                            { label: 'Trucks', value: vehicle_counts.truck, accent: 'text-red-400' },
+                            { label: 'Buses', value: vehicle_counts.bus, accent: 'text-emerald-400' },
+                            { label: 'Motors', value: vehicle_counts.motorcycle, accent: 'text-amber-400' },
+                        ].map((item) => (
+                            <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <p className="text-xs font-black uppercase tracking-[0.28em] text-gray-500 dark:text-gray-400 mb-2">{item.label}</p>
+                                <p className={`text-3xl font-black ${item.accent}`}>{item.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        {Object.entries(lane_counts).map(([laneName, count]) => {
+                            const density = lane_densities[laneName] || 0;
+                            return (
+                                <div key={laneName}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="font-semibold text-gray-700 dark:text-gray-200">{laneName}</span>
+                                        <span className="text-sm text-gray-400">{count} vehicles • {density.toFixed(1)}% load</span>
+                                    </div>
+                                    <div className="h-3 rounded-full bg-slate-800/70 overflow-hidden">
+                                        <div
+                                            className={`${density > 75 ? 'bg-red-500' : density > 50 ? 'bg-amber-400' : 'bg-emerald-500'} h-full rounded-full transition-all duration-700`}
+                                            style={{ width: `${density}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
             <div className="flex justify-end space-x-4 mt-12">
                 <a
                     href={`http://localhost:8000/api/analysis/${result.id}/report/csv/`}
@@ -166,7 +307,6 @@ export default function ResultPage() {
                     <span>View History</span>
                 </button>
             </div>
-
         </div>
     );
 }

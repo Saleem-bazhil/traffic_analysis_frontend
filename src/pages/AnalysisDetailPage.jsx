@@ -17,7 +17,7 @@ export default function AnalysisDetailPage() {
             try {
                 const response = await client.get(`/api/analysis/${id}/`);
                 setAnalysis(response.data);
-            } catch (err) {
+            } catch {
                 setError('Failed to fetch analysis details.');
             } finally {
                 setLoading(false);

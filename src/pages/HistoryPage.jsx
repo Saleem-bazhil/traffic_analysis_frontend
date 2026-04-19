@@ -10,23 +10,23 @@ export default function HistoryPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    const fetchHistory = async (pageUrl = `/api/analysis/?page=${page}`) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await client.get(pageUrl);
-            setHistory(response.data.results);
-
-            // Calculate total pages based on count and page size (default 12)
-            setTotalPages(Math.ceil(response.data.count / 12));
-        } catch (err) {
-            setError('Failed to fetch history.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchHistory = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await client.get(`/api/analysis/?page=${page}`);
+                setHistory(response.data.results);
+
+                // Calculate total pages based on count and page size (default 12)
+                setTotalPages(Math.ceil(response.data.count / 12));
+            } catch {
+                setError('Failed to fetch history.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchHistory();
     }, [page]);
 
